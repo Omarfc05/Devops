@@ -19,7 +19,7 @@ const Dashboard = () => {
             const resDespachos = await axios.get(API_DESPACHOS);
             setDespachos(resDespachos.data);
         } catch (error) {
-            console.error("Error cargando datos:", error);
+            console.error("Error cargando datos...:", error);
         }
     };
 
