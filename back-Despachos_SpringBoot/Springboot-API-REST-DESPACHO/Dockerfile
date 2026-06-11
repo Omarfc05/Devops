@@ -1,5 +1,5 @@
 # ETAPA 1: Build
-FROM maven:3.8-openjdk-17 AS build
+FROM eclipse-temurin:17-jdk-jammy AS build
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
