@@ -26,8 +26,7 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.3
+      - uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ec2-user
@@ -36,5 +35,5 @@ jobs:
           timeout: 60s
           script: |
             cd /home/ec2-user/Devops
-            sudo docker-compose pull
-            sudo docker-compose up -d --no-deps
+            sudo docker-compose pull despachos-backend
+            sudo docker-compose up -d --no-deps despachos-backend
