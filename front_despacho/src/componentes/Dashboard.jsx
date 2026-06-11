@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axios from "axios"
+
+const API_VENTAS = "http://34.234.74.0:8080/api/v1/ventas";
+const API_DESPACHOS = "http://34.234.74.0:8081/api/v1/despachos";
 
 const Dashboard = () => {
     const [ventas, setVentas] = useState([]);
@@ -11,9 +14,9 @@ const Dashboard = () => {
 
     const cargarDatos = async () => {
         try {
-            const resVentas = await axios.get("http://localhost:8080/api/v1/ventas");
+            const resVentas = await axios.get(API_VENTAS);
             setVentas(resVentas.data);
-            const resDespachos = await axios.get("http://localhost:8081/api/v1/despachos");
+            const resDespachos = await axios.get(API_DESPACHOS);
             setDespachos(resDespachos.data);
         } catch (error) {
             console.error("Error cargando datos:", error);
@@ -34,7 +37,7 @@ const Dashboard = () => {
     const registrarVenta = async (e) => {
         e.preventDefault();
         try {
-            await axios.post("http://localhost:8080/api/v1/ventas", {
+            await axios.post(API_VENTAS, {
                 direccionCompra: direccion,
                 fechaCompra: new Date().toISOString().split('T')[0],
                 valorCompra: parseInt(valor),
@@ -52,7 +55,7 @@ const Dashboard = () => {
     const despacharVenta = async (venta) => {
         try {
             // Pasamos los datos que faltan desde el objeto 'venta' original
-            await axios.post("http://localhost:8081/api/v1/despachos", {
+            await axios.post(API_DESPACHOS, {
                 idCompra: venta.idVenta,
                 fechaDespacho: new Date().toISOString().split('T')[0],
                 patenteCamion: "B9-SALF",
@@ -62,7 +65,7 @@ const Dashboard = () => {
                 valorCompra: venta.valorCompra
             });
 
-            await axios.put(`http://localhost:8080/api/v1/ventas/${venta.idVenta}`, {
+            await axios.put(`API_VENTAS/${venta.idVenta}`, {
                 ...venta,
                 despachoGenerado: true
             });
