@@ -5,7 +5,7 @@ COPY pom.xml .
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# ETAPA 2: Runtime - Aquí sí usamos la imagen ligera que ya tenías
+# ETAPA 2: Runtime
 FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 RUN groupadd -r spring && useradd -r -g spring spring
