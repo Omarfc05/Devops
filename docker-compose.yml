@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: ${omarffduoc}/frontend:latest
+    ports:
+      - "80:80"
+    restart: always
+
+  ventas-backend:
+    image: ${omarffduoc}/ventas-backend:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=db
+    depends_on:
+      - db
+    restart: always
+
+  despachos-backend:
+    image: ${omarffduoc}/despachos-backend:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_HOST=db
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: db_empresa
+      MYSQL_ROOT_PASSWORD: password_seguro
+    volumes:
+      - db_data:/var/lib/mysql # Persistencia exigida por la pauta (IE3)
+
+volumes:
+  db_data: # Definición de Named Volume
