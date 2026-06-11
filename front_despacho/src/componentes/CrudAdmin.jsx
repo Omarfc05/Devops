@@ -13,7 +13,7 @@ export const CrudAdmin = () => {
           <Navbar />
         </div>
 
-        {/* Columna 2: Contenido principal (ocupa el espacio restante) */}
+        {/* Columna 2: Contenido principal (ocupa el espacio restantes) */}
         <div className="overflow-y-auto p-6">
           {" "}
           {/* Por si el contenido es muy largo */}
