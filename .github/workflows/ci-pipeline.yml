@@ -49,13 +49,20 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # 1. Ajuste de permisos para evitar el error de 'dubious ownership'
+            # 1. Corregir permisos de propiedad de la carpeta para ec2-user
+            sudo chown -R ec2-user:ec2-user /home/ec2-user/Devops
+            
+            # 2. Configurar Git como seguro
             git config --global --add safe.directory /home/ec2-user/Devops
             
-            # 2. Sincronización y despliegue
-            cd Devops
-            git pull origin deploy
+            # 3. Navegar y limpiar posibles bloqueos de Git
+            cd /home/ec2-user/Devops
+            rm -f .git/index.lock
             
-            # 3. Forzar actualización de imágenes y levantar contenedores
+            # 4. Pull forzado para ignorar discrepancias locales
+            git fetch --all
+            git reset --hard origin/deploy
+            
+            # 5. Despliegue con Docker Compose
             docker-compose pull
             docker-compose up -d --remove-orphans
