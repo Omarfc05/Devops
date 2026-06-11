@@ -3,8 +3,6 @@ name: Deploy Backend Ventas
 on:
   push:
     branches: [ deploy ]
-    paths:
-      - 'back-Ventas_SpringBoot/Springboot-API-REST/**'
 
 jobs:
   build-and-push:
