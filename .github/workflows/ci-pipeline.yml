@@ -49,7 +49,13 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # 1. Ajuste de permisos para evitar el error de 'dubious ownership'
+            git config --global --add safe.directory /home/ec2-user/Devops
+            
+            # 2. Sincronización y despliegue
             cd Devops
-            git pull
+            git pull origin deploy
+            
+            # 3. Forzar actualización de imágenes y levantar contenedores
             docker-compose pull
-            docker-compose up -d --build
+            docker-compose up -d --remove-orphans
