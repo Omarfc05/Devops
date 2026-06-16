@@ -44,10 +44,9 @@ jobs:
             # 4. Entramos a la carpeta clonada
             cd /home/ec2-user/devops
             
-            # 5. Exportamos variable (solo en ventas y despachos, en frontend puedes omitir esta línea o dejarla, no hace daño)
-            export DB_IP_DATOS="${{ secrets.DB_IP_DATOS }}"
             
-            # 6. Detenemos y borramos contenedores viejos antes de levantar los nuevos
+            
+            # 5. Detenemos y borramos contenedores viejos antes de levantar los nuevos
             # (Cambia "frontend" por "ventas-backend" o "despachos-backend" según el archivo)
             sudo docker-compose stop frontend
             sudo docker-compose rm -f frontend

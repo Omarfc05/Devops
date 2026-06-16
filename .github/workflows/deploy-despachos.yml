@@ -37,7 +37,6 @@ jobs:
             git clone https://github.com/omarfc05/devops.git
             cd /home/ec2-user/devops
             
-            export DB_IP_DATOS="${{ secrets.DB_IP_DATOS }}"
             
             sudo docker-compose stop despachos-backend
             sudo docker-compose rm -f despachos-backend
