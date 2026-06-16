@@ -183,6 +183,13 @@ resource "aws_security_group" "sg_app" {
   }
 
   ingress {
+    from_port       = 8081 # Agregado para el backend de despachos
+    to_port         = 8081
+    protocol        = "tcp"
+    security_groups = [aws_security_group.sg_web.id]
+  }
+
+  ingress {
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
@@ -210,8 +217,8 @@ resource "aws_security_group" "sg_datos" {
   vpc_id      = aws_vpc.vpc_principal.id
 
   ingress {
-    from_port       = 5432
-    to_port         = 5432
+    from_port       = 3306 # CORREGIDO: Puerto MySQL
+    to_port         = 3306
     protocol        = "tcp"
     security_groups = [aws_security_group.sg_app.id]
   }
@@ -220,7 +227,8 @@ resource "aws_security_group" "sg_datos" {
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    security_groups = [aws_security_group.sg_app.id]
+    # CORREGIDO: Ahora permite SSH desde la máquina web (Bastion)
+    security_groups = [aws_security_group.sg_web.id]
   }
 
   ingress {
@@ -253,19 +261,16 @@ resource "aws_instance" "ec2_web" {
 
   user_data = <<-EOF
               #!/bin/bash
-              # 1. Actualizar SO
               yum update -y
               yum upgrade -y
-              # 2. Instalar Docker
               yum install docker -y
               systemctl enable docker
               systemctl start docker
               usermod -aG docker ec2-user
-              # 3. Instalar Git
               yum install git -y
-              # 4. Validar (Imprime logs en /var/log/user-data.log)
-              docker --version
-              git --version
+              curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              chmod +x /usr/local/bin/docker-compose
+              ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
               EOF
 }
 
@@ -286,19 +291,16 @@ resource "aws_instance" "ec2_app" {
 
   user_data = <<-EOF
               #!/bin/bash
-              # 1. Actualizar SO
               yum update -y
               yum upgrade -y
-              # 2. Instalar Docker
               yum install docker -y
               systemctl enable docker
               systemctl start docker
               usermod -aG docker ec2-user
-              # 3. Instalar Git
               yum install git -y
-              # 4. Validar
-              docker --version
-              git --version
+              curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              chmod +x /usr/local/bin/docker-compose
+              ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
               EOF
 }
 
@@ -313,20 +315,13 @@ resource "aws_instance" "ec2_datos" {
 
   user_data = <<-EOF
               #!/bin/bash
-              # 1. Actualizar SO
               yum update -y
               yum upgrade -y
-              # 2. Instalar Docker
               yum install docker -y
               systemctl enable docker
               systemctl start docker
               usermod -aG docker ec2-user
-              # 3. Instalar Git
               yum install git -y
-              # 4. Validar
-              docker --version
-              git --version
-              # 5. Instalar Docker Compose
               curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
               chmod +x /usr/local/bin/docker-compose
               ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
