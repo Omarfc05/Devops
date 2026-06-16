@@ -26,12 +26,33 @@ jobs:
     steps:
       - uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_PUBLIC_IP }}
+          host: ${{ secrets.EC2_PRIVATE_APP_IP }}      # Se conecta a la IP privada de la App
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           timeout: 60s
+          proxy_host: ${{ secrets.EC2_PUBLIC_IP }}     # Usa la máquina Web como puente
+          proxy_username: ec2-user
+          proxy_key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ec2-user/Devops
+            # 1. Aseguramos estar en el home del usuario
+            cd /home/ec2-user
+            
+            # 2. Borramos la carpeta vieja si existe (para evitar conflictos de git pull)
+            sudo rm -rf devops
+            
+            # 3. Clonamos fresco (garantiza que tienes el código más reciente)
+            git clone https://github.com/omarfc05/devops.git
+            
+            # 4. Entramos a la carpeta clonada
+            cd /home/ec2-user/devops
+            
+            # 5. Exportamos variable (solo en ventas y despachos, en frontend puedes omitir esta línea o dejarla, no hace daño)
+            export DB_IP_DATOS="${{ secrets.DB_IP_DATOS }}"
+            
+            # 6. Detenemos y borramos contenedores viejos antes de levantar los nuevos
+            # (Cambia "frontend" por "ventas-backend" o "despachos-backend" según el archivo)
+            sudo docker-compose stop ventas-backend
+            sudo docker-compose rm -f ventas-backend
             sudo docker-compose pull ventas-backend
-            sudo docker-compose up -d --no-deps ventas-backend
+            sudo -E docker-compose up -d --no-deps ventas-backend

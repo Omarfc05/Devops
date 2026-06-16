@@ -1,39 +1,59 @@
 version: '3.8'
 
 services:
-  frontend:
-    image: omarffduoc/frontend:latest
+  # ==========================================
+  # CAPA DE DATOS (Se levanta manualmente en ec2_datos)
+  # ==========================================
+  database:
+    image: mysql:8.0
+    container_name: mysql-db
     ports:
-      - "80:80"
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: adminpassword123
+      MYSQL_DATABASE: proyecto_db
+    volumes:
+      - mysql_data:/var/lib/mysql
     restart: always
 
+  # ==========================================
+  # CAPA DE APLICACIÓN (Se levanta vía GitHub Actions en ec2_app)
+  # ==========================================
   ventas-backend:
     image: omarffduoc/ventas-backend:latest
+    container_name: ventas-app
     ports:
       - "8080:8080"
     environment:
-      - DB_HOST=db
-    depends_on:
-      - db
+      - DB_ENDPOINT=${DB_IP_DATOS}
+      - DB_PORT=3306
+      - DB_NAME=proyecto_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=adminpassword123
     restart: always
 
   despachos-backend:
     image: omarffduoc/despachos-backend:latest
+    container_name: despachos-app
     ports:
       - "8081:8081"
     environment:
-      - DB_HOST=db
-    depends_on:
-      - db
+      - DB_ENDPOINT=${DB_IP_DATOS}
+      - DB_PORT=3306
+      - DB_NAME=proyecto_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=adminpassword123
     restart: always
 
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_DATABASE: db_empresa
-      MYSQL_ROOT_PASSWORD: password_seguro
-    volumes:
-      - db_data:/var/lib/mysql # Persistencia exigida por la pauta (IE3)
+  # ==========================================
+  # CAPA WEB / FRONTEND (Se levanta vía GitHub Actions en ec2_web)
+  # ==========================================
+  frontend:
+    image: omarffduoc/frontend:latest
+    container_name: frontend-app
+    ports:
+      - "80:80"
+    restart: always
 
 volumes:
-  db_data: # Definición de Named Volume
+  mysql_data:
