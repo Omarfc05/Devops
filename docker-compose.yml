@@ -23,7 +23,7 @@ services:
     image: omarffduoc/ventas-backend:latest
     container_name: ventas-app
     environment:
-      - DB_ENDPOINT=${DB_IP_DATOS}
+      - DB_ENDPOINT=10.0.3.150
       - DB_PORT=3306
       - DB_NAME=proyecto_db
       - DB_USERNAME=root
@@ -36,7 +36,7 @@ services:
     image: omarffduoc/despachos-backend:latest
     container_name: despachos-app
     environment:
-      - DB_ENDPOINT=${DB_IP_DATOS}
+      - DB_ENDPOINT=10.0.3.150
       - DB_PORT=3306
       - DB_NAME=proyecto_db
       - DB_USERNAME=root
