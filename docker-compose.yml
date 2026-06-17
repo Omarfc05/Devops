@@ -1,9 +1,6 @@
 version: '3.8'
 
 services:
-  # ==========================================
-  # 1. EL PORTERO (NGINX) - El único expuesto
-  # ==========================================
   reverse-proxy:
     image: nginx:latest
     container_name: reverse-proxy
@@ -12,18 +9,16 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     restart: always
+    networks:
+      - app-network
 
-  # ==========================================
-  # 2. CAPA WEB / FRONTEND (Oculto)
-  # ==========================================
   frontend:
     image: omarffduoc/frontend:latest
     container_name: frontend-app
     restart: always
+    networks:
+      - app-network
 
-  # ==========================================
-  # 3. CAPA DE APLICACIÓN (Ocultos)
-  # ==========================================
   ventas-backend:
     image: omarffduoc/ventas-backend:latest
     container_name: ventas-app
@@ -34,6 +29,8 @@ services:
       - DB_USERNAME=root
       - DB_PASSWORD=adminpassword123
     restart: always
+    networks:
+      - app-network
 
   despachos-backend:
     image: omarffduoc/despachos-backend:latest
@@ -45,22 +42,9 @@ services:
       - DB_USERNAME=root
       - DB_PASSWORD=adminpassword123
     restart: always
+    networks:
+      - app-network
 
-  # ==========================================
-  # CAPA DE DATOS (Se levanta manualmente en ec2-datos)
-  # ==========================================
-  database:
-    image: mysql:8.0
-    container_name: mysql-db
-    command: --bind-address=0.0.0.0
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: adminpassword123
-      MYSQL_DATABASE: proyecto_db
-    volumes:
-      - mysql_data:/var/lib/mysql
-    restart: always
-
-volumes:
-  mysql_data:
+networks:
+  app-network:
+    driver: bridge
