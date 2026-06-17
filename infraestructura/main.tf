@@ -239,17 +239,16 @@ resource "aws_security_group" "sg_datos" {
   vpc_id      = aws_vpc.vpc_principal.id
 
   ingress {
-    from_port       = 3306 # CORREGIDO: Puerto MySQL
+    from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = [aws_security_group.sg_app.id]
+    security_groups = [aws_security_group.sg_web.id] # <--- CORREGIDO (Ahora permite desde la máquina web)
   }
 
   ingress {
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    # CORREGIDO: Ahora permite SSH desde la máquina web (Bastion)
     security_groups = [aws_security_group.sg_web.id]
   }
 

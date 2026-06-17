@@ -2,54 +2,58 @@ name: Deploy Frontend
 
 on:
   push:
-    branches: [ deploy ]
+    branches:
+      - deploy # O la rama que uses (main, master, etc.)
+    paths:
+      - 'front_despacho/**'
+      - 'docker-compose.yml'
+      - 'nginx.conf'
+  workflow_dispatch:
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and Push
-        uses: docker/build-push-action@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
         with:
           context: ./front_despacho
           push: true
-          tags: omarffduoc/frontend:latest
+          tags: omarffduoc/frontend:latest # Asegúrate de que este sea tu repo en Docker Hub
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - uses: appleboy/ssh-action@v1.0.3
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_PUBLIC_IP }} # Va directo a la máquina pública
+          host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           timeout: 60s
           script: |
-            # 1. Aseguramos estar en el home del usuario
-            cd /home/ec2-user
-            
-            # 2. Borramos la carpeta vieja si existe (para evitar conflictos de git pull)
-            sudo rm -rf devops
-            
-            # 3. Clonamos fresco (garantiza que tienes el código más reciente)
-            git clone https://github.com/omarfc05/devops.git
-            
-            # 4. Entramos a la carpeta clonada
             cd /home/ec2-user/devops
             
+            # 1. Asegurar tener el último docker-compose y nginx.conf
+            git pull origin deploy
             
-            
-            # 5. Detenemos y borramos contenedores viejos antes de levantar los nuevos
-            # (Cambia "frontend" por "ventas-backend" o "despachos-backend" según el archivo)
-            sudo docker-compose stop frontend
-            sudo docker-compose rm -f frontend
+            # 2. Descargar la nueva imagen que se acaba de subir a Docker Hub
             sudo docker-compose pull frontend
-            sudo -E docker-compose up -d --no-deps frontend
-            sudo -E docker-compose up -d reverse-proxy
+            
+            # 3. Reiniciar solo el contenedor del frontend y Nginx (sin tocar backends)
+            sudo docker-compose up -d --no-deps frontend
+            sudo docker-compose restart reverse-proxy
