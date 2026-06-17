@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios"
 
-const API_VENTAS = "http://3.215.128.208/api/v1/ventas";
-const API_DESPACHOS = "http://3.215.128.208/api/v1/despachos";
+const API_VENTAS = "http://34.200.152.235/api/v1/ventas";
+const API_DESPACHOS = "http://34.200.152.235/api/v1/despachos";
 
 const Dashboard = () => {
     const [ventas, setVentas] = useState([]);
