@@ -81,7 +81,7 @@ const Dashboard = () => {
             {/* Cabecera Principal */}
             <div className="bg-white/50 backdrop-blur-xl border border-white/80 p-6 rounded-3xl shadow-[0_10px_40px_rgba(0,150,255,0.15)] flex justify-between items-center">
                 <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-600 drop-shadow-sm">
-                    📦 Central de SmartLogix
+                    📦 Panel de Administración
                 </h1>
                 <button onClick={cargarDatos} className="bg-gradient-to-b from-white to-sky-50 text-sky-600 font-bold py-2 px-6 rounded-full border border-sky-200 shadow-md hover:shadow-lg transition-all active:scale-95">
                     ↻ Refrescar
