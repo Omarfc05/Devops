@@ -52,3 +52,4 @@ jobs:
             sudo docker-compose rm -f frontend
             sudo docker-compose pull frontend
             sudo -E docker-compose up -d --no-deps frontend
+            sudo -E docker-compose up -d reverse-proxy

@@ -2,28 +2,31 @@ version: '3.8'
 
 services:
   # ==========================================
-  # CAPA DE DATOS (Se levanta manualmente en ec2_datos)
+  # 1. EL PORTERO (NGINX) - El único expuesto
   # ==========================================
-  database:
-    image: mysql:8.0
-    container_name: mysql-db
+  reverse-proxy:
+    image: nginx:latest
+    container_name: reverse-proxy
     ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: adminpassword123
-      MYSQL_DATABASE: proyecto_db
+      - "0.0.0.0:80:80"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     restart: always
 
   # ==========================================
-  # CAPA DE APLICACIÓN (Se levanta vía GitHub Actions)
+  # 2. CAPA WEB / FRONTEND (Oculto)
+  # ==========================================
+  frontend:
+    image: omarffduoc/frontend:latest
+    container_name: frontend-app
+    restart: always
+
+  # ==========================================
+  # 3. CAPA DE APLICACIÓN (Ocultos)
   # ==========================================
   ventas-backend:
     image: omarffduoc/ventas-backend:latest
     container_name: ventas-app
-    ports:
-      - "0.0.0.0:8080:8080" # <--- Exponer a todas las interfaces
     environment:
       - DB_ENDPOINT=${DB_IP_DATOS}
       - DB_PORT=3306
@@ -35,8 +38,6 @@ services:
   despachos-backend:
     image: omarffduoc/despachos-backend:latest
     container_name: despachos-app
-    ports:
-      - "0.0.0.0:8081:8081" # <--- Exponer a todas las interfaces
     environment:
       - DB_ENDPOINT=${DB_IP_DATOS}
       - DB_PORT=3306
@@ -46,13 +47,19 @@ services:
     restart: always
 
   # ==========================================
-  # CAPA WEB / FRONTEND (Se levanta vía GitHub Actions)
+  # CAPA DE DATOS (Se levanta manualmente en ec2-datos)
   # ==========================================
-  frontend:
-    image: omarffduoc/frontend:latest
-    container_name: frontend-app
+  database:
+    image: mysql:8.0
+    container_name: mysql-db
+    command: --bind-address=0.0.0.0
     ports:
-      - "0.0.0.0:80:80" # <--- Asegurarnos de que el frontend también esté expuesto
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: adminpassword123
+      MYSQL_DATABASE: proyecto_db
+    volumes:
+      - mysql_data:/var/lib/mysql
     restart: always
 
 volumes:
