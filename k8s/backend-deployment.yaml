@@ -17,6 +17,13 @@ spec:
         - name: ventas
           image: 417651015767.dkr.ecr.us-east-1.amazonaws.com/proyecto-ventas:eks-v1
           imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "250m"      # CPU mínima reservada
+              memory: "256Mi"
+            limits:
+              cpu: "500m"      # CPU máxima permitida
+              memory: "512Mi"
           env:
             - name: DB_ENDPOINT
               value: "db-service"
@@ -53,6 +60,13 @@ spec:
         - name: despachos
           image: 417651015767.dkr.ecr.us-east-1.amazonaws.com/proyecto-despachos:eks-v1
           imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "250m"      # CPU mínima reservada
+              memory: "256Mi"
+            limits:
+              cpu: "500m"      # CPU máxima permitida
+              memory: "512Mi"
           env:
             - name: DB_ENDPOINT
               value: "db-service"
