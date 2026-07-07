@@ -1,59 +1,47 @@
-name: Deploy Frontend
+name: Deploy Frontend to EKS
 
 on:
   push:
     branches:
-      - deploy # O la rama que uses (main, master, etc.)
+      - deploy
     paths:
       - 'front_despacho/**'
-      - 'docker-compose.yml'
-      - 'nginx.conf'
+      - 'k8s/frontend-deployment.yaml'
+      - 'k8s/frontend-service.yaml'
   workflow_dispatch:
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./front_despacho
-          push: true
-          tags: omarffduoc/frontend:latest # Asegúrate de que este sea tu repo en Docker Hub
+      - name: Build and push Frontend Image to ECR
+        run: |
+          docker build -t 417651015767.dkr.ecr.us-east-1.amazonaws.com/proyecto-frontend:eks-v1 ./front_despacho
+          docker push 417651015767.dkr.ecr.us-east-1.amazonaws.com/proyecto-frontend:eks-v1
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_PUBLIC_IP }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          timeout: 60s
-          script: |
-            cd /home/ec2-user/devops
-            
-            # 1. Asegurar tener el último docker-compose y nginx.conf
-            git pull origin deploy
-            
-            # 2. Descargar la nueva imagen que se acaba de subir a Docker Hub
-            sudo docker-compose pull frontend
-            
-            # 3. Reiniciar solo el contenedor del frontend y Nginx (sin tocar backends)
-            sudo docker-compose up -d --no-deps frontend
-            sudo docker-compose restart reverse-proxy
+      - name: Update Kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --name eva3-eks --region us-east-1
+
+      - name: Deploy and Restart Pods on EKS
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/frontend-deployment.yaml
+          kubectl apply -f k8s/frontend-service.yaml
+          kubectl rollout restart deployment/frontend-app -n tienda
+          kubectl rollout restart deployment/reverse-proxy -n tienda

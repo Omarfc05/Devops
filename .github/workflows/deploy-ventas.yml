@@ -1,47 +1,45 @@
-name: Deploy Backend Ventas
+name: Deploy Backend Ventas to EKS
 
 on:
   push:
-    branches: [ deploy ]
+    branches:
+      - deploy
     paths:
       - 'back-Ventas_SpringBoot/**'
+      - 'k8s/backend-deployment.yaml'
+  workflow_dispatch:
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and Push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./back-Ventas_SpringBoot/Springboot-API-REST
-          push: true
-          tags: omarffduoc/ventas-backend:latest
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - uses: appleboy/ssh-action@v1.0.3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_PUBLIC_IP }}           # ¡Cambiado a la IP Pública!
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          timeout: 60s
-          script: |
-            cd /home/ec2-user
-            sudo rm -rf devops
-            git clone https://github.com/omarfc05/devops.git
-            cd /home/ec2-user/devops
-            
-            export DB_IP_DATOS="${{ secrets.DB_IP_DATOS }}"
-            
-            sudo docker-compose stop ventas-backend
-            sudo docker-compose rm -f ventas-backend
-            sudo docker-compose pull ventas-backend
-            sudo -E docker-compose up -d --no-deps ventas-backend
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Ventas Image to ECR
+        run: |
+          docker build -t 417651015767.dkr.ecr.us-east-1.amazonaws.com/proyecto-ventas:eks-v1 ./back-Ventas_SpringBoot/Springboot-API-REST
+          docker push 417651015767.dkr.ecr.us-east-1.amazonaws.com/proyecto-ventas:eks-v1
+
+      - name: Update Kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --name eva3-eks --region us-east-1
+
+      - name: Deploy and Restart Ventas on EKS
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/backend-deployment.yaml
+          kubectl apply -f k8s/backend-service.yaml
+          kubectl rollout restart deployment/ventas-app -n tienda

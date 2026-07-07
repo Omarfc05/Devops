@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: tienda
+spec:
+  selector:
+    app: frontend-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tienda-frontend
+  namespace: tienda
+  annotations:
+    # Fuerza a AWS a crear un Balanceador de Carga Público/Internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+spec:
+  type: LoadBalancer
+  selector:
+    app: reverse-proxy
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
