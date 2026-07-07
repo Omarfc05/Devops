@@ -65,7 +65,7 @@ const Dashboard = () => {
                 valorCompra: venta.valorCompra
             });
 
-            await axios.put(`API_VENTAS/${venta.idVenta}`, {
+            await axios.put(`${API_VENTAS}/${venta.idVenta}`, {
                 ...venta,
                 despachoGenerado: true
             });

@@ -16,6 +16,7 @@ spec:
       containers:
         - name: ventas
           image: 417651015767.dkr.ecr.us-east-1.amazonaws.com/proyecto-ventas:eks-v1
+          imagePullPolicy: Always
           env:
             - name: DB_ENDPOINT
               value: "db-service"
@@ -51,6 +52,7 @@ spec:
       containers:
         - name: despachos
           image: 417651015767.dkr.ecr.us-east-1.amazonaws.com/proyecto-despachos:eks-v1
+          imagePullPolicy: Always
           env:
             - name: DB_ENDPOINT
               value: "db-service"
