@@ -99,7 +99,7 @@ const Dashboard = () => {
                             <input
                                 type="text" required value={direccion} onChange={(e) => setDireccion(e.target.value)}
                                 className="w-full px-4 py-3 rounded-2xl bg-white/80 border border-white shadow-inner text-sky-900 focus:outline-none focus:ring-4 focus:ring-sky-300/40 transition-all"
-                                placeholder="Ej. Gran Avenida 9000"
+                                placeholder="Ej. Gran Avenida 900"
                             />
                         </div>
                         <div>
